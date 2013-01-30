@@ -11,4 +11,4 @@ You can use the following account to test:
 
 1. Admin account: towerjoo/zhutao (Go to http://127.0.0.1:8000/admin/ to login)
 2. Site account: tower/zhutao
-3. Secret question and answer: Who are you? / zhutao
+3. Secret question and answer: Who are you? / Zhu
