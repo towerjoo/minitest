@@ -22,49 +22,50 @@ def login(request, template="account/login.html"):
             user = authenticate(username=username, password=password)
             if user:
                 if user.is_active:
+                    request.session["password"] = password
                     token = Account.objects.update_token(user)
                     if token:
                         return HttpResponseRedirect(reverse("secret")+"?token=" + token)
+            else:
+                error = "username and password don't match"
     else:
         form = LoginForm()
-    return render_to_response(template, {"form" : form, "error" : error}, context_instance=RequestContext(request))
+    return render_to_response(template, {"form" : form, "error" : error, "title" : "login"}, context_instance=RequestContext(request))
 
 def secret(request, template="account/secret.html"):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('login') + "?e=Please login at first")
 
+    token = request.GET.get("token", request.POST.get("token", None))
+    if token is None:
+        return HttpResponseRedirect(reverse('login') + "?e=You need a token to continue, login again")
+    acct = Account.objects.get_acct_from_token(token)
+    if acct is None:
+        return HttpResponseRedirect(reverse('login') + "?e=You got an invalid token, login again")
+    form = SecretForm()
+    error = request.GET.get("e")
 
     if request.method == "POST":
         error = None
         form = SecretForm(request.POST)
-
-        token = request.POST.get("token")
-        acct = Account.objects.get_acct_from_token(token)
-        if acct is None:
-            return HttpResponseRedirect(reverse('login') + "?e=You got an invalid token, login again")
-
         if form.is_valid():
             answer = form.cleaned_data.get("answer")
             succ = Account.objects.verify_and_login(acct, answer)
-            if succ :
-                login(request, acct.user)
-                return HttpResponseRedirect(reverse("home"))
+            if succ:
+                user = authenticate(username=acct.user.username, password=request.session.get("password", ""))
+                if user:
+                    UserLogin(request, user)
+                    request.session["password"] = ""
+                    return HttpResponseRedirect(reverse("home"))
+                else:
+                    error = "You need to enable your cookie"
             else:
                 error = "An incorrect answer, try again."
-    else:
-        token = request.GET.get("token", "None")
-        if token is None:
-            return HttpResponseRedirect(reverse('login') + "?e=You need a token to continue, login again")
-        acct = Account.objects.get_acct_from_token(token)
-        if acct is None:
-            return HttpResponseRedirect(reverse('login') + "?e=You got an invalid token, login again")
-        form = SecretForm()
-        error = request.GET.get("e")
-    return render_to_response(template, {"form" : form, "error" : error, "question" : acct.question, "token" : token}, context_instance=RequestContext(request))
+    return render_to_response(template, {"form" : form, "error" : error, "question" : acct.question, "token" : token, "title" : "secret question"}, context_instance=RequestContext(request))
 
 @login_required
 def home(request, template="account/home.html"):
-    return render_to_response(template, {}, context_instance=RequestContext(request))
+    return render_to_response(template, {"title" : "home"}, context_instance=RequestContext(request))
 
 @login_required
 def logout(request):
