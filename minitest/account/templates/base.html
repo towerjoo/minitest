@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <title>{{ title }} - minitest</title>
+        {% block extra_media %}
+
+        {% endblock %}
+    </head>
+    <body>
+    <div id="header">
+    {% block header %}
+        {% if user.is_authenticated %}
+            <a href="{% url logout %}">Logout</a>
+        {% else %}
+            <a href="{% url login %}">Login</a>
+        {% endif %}
+    {% endblock %}
+    </div>
+    <div id="body">
+    {% block body%}
+
+    {% endblock %}
+    </div>
+    <div id="footer">
+    {% block footer%}
+
+    {% endblock %}
+    </div>
+</html>
