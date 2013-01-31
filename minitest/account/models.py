@@ -5,6 +5,8 @@ from datetime import datetime
 
 class AccountManager(models.Manager):
     def verify_and_login(self, acct, answer):
+        if acct is None:
+            return False
         if acct.answer == answer:
             acct.token = ""
             acct.user.last_login = datetime.utcnow()

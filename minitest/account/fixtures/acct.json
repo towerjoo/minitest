@@ -1,0 +1,12 @@
+[
+    {
+        "pk": 1,
+        "model": "account.account",
+        "fields": {
+            "answer": "Zhu",
+            "token": "",
+            "question": "Who are you?",
+            "user": 2
+        }
+    }
+]
